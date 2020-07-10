@@ -1,5 +1,5 @@
 # bootique-dotenv
-A Bootique module for setting Java system properties using a properties file (.env by default).
+A Bootique module for setting Java system properties using a properties file.
 
 This project is inspired by [java-dotenv](https://github.com/cdimascio/java-dotenv).
 
@@ -23,8 +23,8 @@ where the Bootique version is at least 2.0-SNAPSHOT.
 ### DOTENV COMMANDS AS OPTIONS
 
 There is just one command (dotenv) with an optional resource parameter that
-defaults to classpath:.env. Please note that just one property file is
-allowed just like java-dotenv prescribes.
+defaults to the system property 'dotenv.resource' or 'classpath:env.properties'. Please
+note that just one property file is allowed just like java-dotenv prescribes.
 
 This commmand:
 
@@ -39,8 +39,9 @@ will show something like this:
 ...
       -d, --dotenv
            Reads one (optional) property resource that is specified with a
-           '--resource' option. The default is 'classpath:.env'.
-...					 
+           '--resource' option. The default is the value of the system
+           property 'dotenv.resource' or 'classpath:env.properties'.
+...
 ```
 
 ## Start your application with this command
@@ -73,5 +74,5 @@ You can either copy the main class or you can add the main class to your Maven P
 ```text
   <properties>
     <main.class>io.bootique.dotenv.App</main.class>
-  </properties>		
+  </properties>
 ```

@@ -41,24 +41,26 @@ import javax.inject.Provider;
 public class DotenvCommand extends CommandWithMetadata {
     private static final Logger LOGGER = LoggerFactory.getLogger(DotenvCommand.class);
 
-    private static final String RESOURCE_DEFAULT = "classpath:.env";
+    private static final String RESOURCE_OPTION = "resource";
+    private static final String RESOURCE_SYSTEM_PROPERTY = "dotenv." + RESOURCE_OPTION;
+    private static final String RESOURCE_DEFAULT = "classpath:env.properties";
+    private static final String RESOURCE_ACTUAL = System.getProperty(RESOURCE_SYSTEM_PROPERTY, RESOURCE_DEFAULT);
     private static final String COMMAND_DESCRIPTION =
         "Reads one (optional) property resource that is specified with a '--%s' option. " +
-        "The default is '%s'.";
+        "The default is the value of the system property '%s' or '%s'.";
     private static final String OPTION_DESCRIPTION =
         "Set system properties by reading from a resource " +
-        "(optionally) specified with a '--%s' option. The default is '%s'.";
-    private static final String RESOURCE_OPTION = "resource";
+        "(optionally) specified with a '--%s' option. The default is the value of the system property '%s' or '%s'.";
 
     private static OptionMetadata.Builder createResourceOption() {
         return OptionMetadata.builder(RESOURCE_OPTION)
-            .description(String.format(OPTION_DESCRIPTION, RESOURCE_OPTION, RESOURCE_DEFAULT))
-            .valueOptionalWithDefault(RESOURCE_DEFAULT);
+            .description(String.format(OPTION_DESCRIPTION, RESOURCE_OPTION, RESOURCE_SYSTEM_PROPERTY, RESOURCE_DEFAULT))
+            .valueOptionalWithDefault(RESOURCE_ACTUAL);
     }
 
     private static CommandMetadata createMetadata() {
         return CommandMetadata.builder(DotenvCommand.class)
-            .description(String.format(COMMAND_DESCRIPTION, RESOURCE_OPTION, RESOURCE_DEFAULT))
+            .description(String.format(COMMAND_DESCRIPTION, RESOURCE_OPTION, RESOURCE_SYSTEM_PROPERTY, RESOURCE_DEFAULT))
             .addOption(createResourceOption()).build();
     }
 

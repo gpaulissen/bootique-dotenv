@@ -14,8 +14,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @BQTest
 public class DotenvTest {
-    final String value1 = "abc"; // in the .env
-    final String value2 = "def"; // in the .env
+    final String value1 = "abc";
+    final String value2 = "def";
 
     @BQTestTool
     final BQTestFactory testFactory = new BQTestFactory();
@@ -57,7 +57,7 @@ public class DotenvTest {
     @Test
     public void testCommandResourceSrc() {
         CommandOutcome result = testFactory
-            .app("--dotenv", "--resource", "src/test/resources/.env")
+            .app("--dotenv", "--resource", "src/test/resources/env.properties")
             .autoLoadModules()
             .createRuntime()
             .run();
@@ -69,7 +69,7 @@ public class DotenvTest {
     @Test
     public void testCommandResourceClasspath() {
         CommandOutcome result = testFactory
-            .app("--dotenv", "--resource", "classpath:.env")
+            .app("--dotenv", "--resource", "classpath:env.properties")
             .autoLoadModules()
             .createRuntime()
             .run();
@@ -85,7 +85,7 @@ public class DotenvTest {
         System.setProperty("value1", value1);
             
         CommandOutcome result = testFactory
-            .app("--dotenv", "--resource", "src/test/resources/.env")
+            .app("--dotenv", "--resource", "src/test/resources/env.properties")
             .autoLoadModules()
             .createRuntime()
             .run();
