@@ -26,10 +26,12 @@ import io.bootique.meta.application.CommandMetadata;
 import io.bootique.meta.application.OptionMetadata;
 import io.bootique.resource.ResourceFactory;
 
+import java.io.File;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.URL;
 import java.util.List;
 import java.util.Properties;
-import java.io.*;
-import java.net.URL;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,22 +39,27 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Provider;
 
 public class DotenvCommand extends CommandWithMetadata {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DotenvCommand.class);
 
-    private static final String FILE_OPTION = "file";
+    private static final String RESOURCE_DEFAULT = "classpath:.env";
+    private static final String COMMAND_DESCRIPTION =
+        "Reads one (optional) property resource that is specified with a '--%s' option. " +
+        "The default is '%s'.";
+    private static final String OPTION_DESCRIPTION =
+        "Set system properties by reading from a resource " +
+        "(optionally) specified with a '--%s' option. The default is '%s'.";
+    private static final String RESOURCE_OPTION = "resource";
 
-    private static OptionMetadata.Builder createFileOption() {
-        return OptionMetadata.builder(FILE_OPTION)
-            .description("Set system properties by reading from file " +
-                         "specified with '--file' option.")
-            .valueOptionalWithDefault(".env");
+    private static OptionMetadata.Builder createResourceOption() {
+        return OptionMetadata.builder(RESOURCE_OPTION)
+            .description(String.format(OPTION_DESCRIPTION, RESOURCE_OPTION, RESOURCE_DEFAULT))
+            .valueOptionalWithDefault(RESOURCE_DEFAULT);
     }
 
     private static CommandMetadata createMetadata() {
         return CommandMetadata.builder(DotenvCommand.class)
-            .description("Reads one property file are specified with '--file' option")
-            .addOption(createFileOption()).build();
+            .description(String.format(COMMAND_DESCRIPTION, RESOURCE_OPTION, RESOURCE_DEFAULT))
+            .addOption(createResourceOption()).build();
     }
 
     public DotenvCommand() {
@@ -61,18 +68,25 @@ public class DotenvCommand extends CommandWithMetadata {
 
     // @Override
     public CommandOutcome run(Cli cli) {
-        List<String> fileNames = cli.optionStrings(FILE_OPTION);
+        List<String> resourceNames = cli.optionStrings(RESOURCE_OPTION);
+        final CommandOutcome outcome;
+        final String errorMsg = "Exactly one resource should be specified. Use '--%s' option to provide a resource name";
         
-        if (fileNames == null || fileNames.size() != 1) {
-            return CommandOutcome.failed(1,
-                                         String.format("Exactly one file should be specified. Use '--%s' option to provide a file name", FILE_OPTION));
+        if (resourceNames == null || resourceNames.size() != 1) {
+            outcome = CommandOutcome.failed(1, String.format(errorMsg, RESOURCE_OPTION));
+        } else {
+            outcome = setSystemProperties(resourceNames.get(0));
         }
-
-        String file = fileNames.get(0);
         
-        LOGGER.info("Will read file: " + file);
+        LOGGER.info("Command outcome: " + outcome);
 
-        URL url = new ResourceFactory(file).getUrl(); // file may have classpath: as a prefix                
+        return outcome;
+    }
+
+    public static CommandOutcome setSystemProperties(String resourceName) {
+        LOGGER.info("Will read resource: " + resourceName);
+
+        URL url = new ResourceFactory(resourceName).getUrl(); // resource may have classpath: as a prefix                
         Properties properties = new Properties();
         CommandOutcome outcome = CommandOutcome.succeeded();
 
@@ -85,7 +99,7 @@ public class DotenvCommand extends CommandWithMetadata {
         } catch (Exception e) {
             outcome = CommandOutcome.failed(1, e);
         }
-    
+
         return outcome;
     }
 

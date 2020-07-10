@@ -19,14 +19,19 @@
 
 package io.bootique.dotenv;
 
-import io.bootique.BQCoreModule;
-import io.bootique.BaseModule;
-import io.bootique.di.Binder;
+import io.bootique.Bootique;
 
-public class DotenvModule extends BaseModule {
+public class App {
 
-    @Override
-    public void configure(Binder binder) {
-        BQCoreModule.extend(binder).addCommand(DotenvCommand.class);
+    public static void main(String[] args) {
+        // first launch the dotenv module with the default resource argument        
+        Bootique
+            .app("--dotenv")
+            .module(DotenvModule.class)
+            .createRuntime()
+            .run();
+
+        // Now continue with the rest after the default resource has been read
+        Bootique.app(args).autoLoadModules().exec().exit();
     }
 }

@@ -3,10 +3,12 @@ package io.bootique.dotenv;
 import io.bootique.BQRuntime;
 import io.bootique.Bootique;
 import io.bootique.command.CommandOutcome;
-import io.bootique.junit5.BQApp;
+import io.bootique.junit5.BQTestFactory;
+import io.bootique.junit5.BQTestTool;
 import io.bootique.junit5.BQModuleProviderChecker;
 import io.bootique.junit5.BQTest;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,58 +17,78 @@ public class DotenvTest {
     final String value1 = "abc"; // in the .env
     final String value2 = "def"; // in the .env
 
-    @BQApp
-    final static BQRuntime appFileClasspath = Bootique
-        .app("--dotenv", "--file", "classpath:.env")
-        .autoLoadModules()
-        .createRuntime();
-    
-    @BQApp
-    final static BQRuntime appFileSrc = Bootique
-        .app("--dotenv", "--file", "src/test/resources/.env")
-        .autoLoadModules()
-        .createRuntime();
+    @BQTestTool
+    final BQTestFactory testFactory = new BQTestFactory();
 
+    @AfterEach
+    void cleanup() {
+        //do some complex stuff
+        System.clearProperty("value1");
+        System.clearProperty("value2");
+    }
+    
     @Test
     public void testAutoLoading() {
         BQModuleProviderChecker.testAutoLoadable(DotenvModule.class);
     }
 
     @Test
-    public void testCommandNoFile() {
-        BQRuntime appNoFile = Bootique
+    public void testCommandNoResource() {
+        CommandOutcome result = testFactory
             .app("--dotenv")
             .autoLoadModules()
-            .createRuntime();
-    
-        CommandOutcome result = appNoFile.run();
-        
+            .createRuntime()
+            .run();
+            
+        assertTrue(result.isSuccess());
+    }
+
+    @Test
+    public void testCommandUnknownResource() {
+        CommandOutcome result = testFactory
+            .app("--dotenv", "--resource", "unknown")
+            .autoLoadModules()
+            .createRuntime()
+            .run();
+            
         assertFalse(result.isSuccess());
     }
 
     @Test
-    public void testCommandFileSrc() {
-        CommandOutcome result = appFileSrc.run();
+    public void testCommandResourceSrc() {
+        CommandOutcome result = testFactory
+            .app("--dotenv", "--resource", "src/test/resources/.env")
+            .autoLoadModules()
+            .createRuntime()
+            .run();
         
         assertTrue(result.isSuccess());
         assertEquals(System.getProperty("value1"), value1);
     }
 
     @Test
-    public void testCommandFileClasspath() {
-        CommandOutcome result = appFileClasspath.run();
+    public void testCommandResourceClasspath() {
+        CommandOutcome result = testFactory
+            .app("--dotenv", "--resource", "classpath:.env")
+            .autoLoadModules()
+            .createRuntime()
+            .run();
         
         assertTrue(result.isSuccess());
         assertEquals(System.getProperty("value2"), value2);
     }
 
     @Test
-    public void testCommandFileNoOverwrite() {
+    public void testCommandResourceNoOverwrite() {
         final String value1 = value2;
         
         System.setProperty("value1", value1);
             
-        CommandOutcome result = appFileSrc.run();
+        CommandOutcome result = testFactory
+            .app("--dotenv", "--resource", "src/test/resources/.env")
+            .autoLoadModules()
+            .createRuntime()
+            .run();
         
         assertTrue(result.isSuccess());
         assertEquals(System.getProperty("value1"), value1);
