@@ -39,8 +39,8 @@ will show something like this:
 ...
       -d, --dotenv
            Reads one (optional) property resource that is specified with a
-           '--resource' option. The default is the value of the system
-           property 'dotenv.resource' or 'classpath:env.properties'.
+           '--resource' option. The default is the value of the system property
+           'dotenv.resource' or 'classpath:env.properties'.
 ...
 ```
 
