@@ -35,7 +35,12 @@ import java.util.Properties;
 
 import javax.inject.Provider;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DotenvCommand extends CommandWithMetadata {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DotenvCommand.class);
+    
     private static final String RESOURCE_OPTION = "resource";
     private static final String RESOURCE_SYSTEM_PROPERTY = "dotenv." + RESOURCE_OPTION;
     private static final String RESOURCE_DEFAULT = "classpath:env.properties";
@@ -79,6 +84,8 @@ public class DotenvCommand extends CommandWithMetadata {
     }
 
     public static CommandOutcome setSystemProperties(String resourceName) {
+        LOGGER.debug("Will read resource: " + resourceName);
+
         URL url = new ResourceFactory(resourceName).getUrl(); // resource may have classpath: as a prefix                
         Properties properties = new Properties();
         CommandOutcome outcome = CommandOutcome.succeeded();
@@ -93,12 +100,19 @@ public class DotenvCommand extends CommandWithMetadata {
             outcome = CommandOutcome.failed(1, e);
         }
 
+        LOGGER.debug("Command outcome: " + outcome);
+                
         return outcome;
     }
 
     public static void setSystemProperty(String name, String value) {
         // take care not to overwrite a system property
-        if (value != null && System.getProperty(name) == null) {
+        if (System.getProperty(name) != null) {
+            LOGGER.debug("Skip setting system property '{}' since it is already set", name);
+        } else if (value == null) {
+            LOGGER.debug("Skip setting system property '{}' since the new value is null", name);
+        } else {
+            LOGGER.debug("Setting system property '{}' to '{}'", name, value);
             System.setProperty(name, value);
         }
     }

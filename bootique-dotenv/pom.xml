@@ -48,6 +48,11 @@
           <artifactId>bootique-di</artifactId>
           <version>${project.version}</version>
         </dependency>
+        <dependency>
+          <groupId>io.bootique.logback</groupId>
+          <artifactId>bootique-logback</artifactId>
+          <version>${bootique.version}</version>
+        </dependency>
 
         <!-- Unit test dependencies -->
         <dependency>
